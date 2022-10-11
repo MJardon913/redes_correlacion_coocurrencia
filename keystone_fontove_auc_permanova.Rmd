@@ -34,6 +34,8 @@ red <- read.csv("networks/chile_species_raw_network.csv")
 red = red[,1:3]
 head(red)
 dim(red)
+
+otus <- data$enum
 ```
 
 Calcular grado
@@ -72,49 +74,36 @@ deg_otu <- function(df , otu){
 return(suma_otu)}
 
 
-deg <- function(df){
-  colnames(df) <- c("taxon1","taxon2","weight")
-  df <- df[order(df[,1]),]
-  df_2 <- df[order(df[,2]),]
-  df_2 <- df_2[,c("taxon2","taxon1","weight")]
-  # buscar manera más general de describir este vector
-  otus <- c(df[1,1])
-  j <- 2
-  while (df[j,1] < df_2[1,1]) {
-    if (otus[length(otus)] != df[j,1]){
-      otus <- c(otus, df[j,1])
-    }
-    j <- j + 1 
-  }
+deg <- function(df , nodes){
+  #df debe ser un data frame cuyas primeras dos columnas representan los pares de otus, sin redundancias, y la tercera es el peso de la arista
+  #nodes es el vector de etiquetas ordenadas de los otus, y con cuyo orden se pueda ordenar las primeras dos columnas de df
   
-  k <- 1
-  while (k <= dim(df_2)[1]) {
-    if (otus[length(otus)] != df_2[k,1]){
-      otus <- c(otus, df_2[k,1])
-    }
-    k <- k + 1 
-  }
+  colnames(df) <- c("taxon1","taxon2","weight")
+  df <- df[order(df[,"taxon1"]),]
+  df_2 <- df[order(df[,"taxon2"]),]
   
   vec_deg <- c()
   
-  for (i in otus){
-    if (df[1,1] != i){
-      deg_i <- 0} else {
-    deg_i <- deg_otu(df ,i)
+  
+  x_1 <- 1
+  x_2 <- 1
+  
+  for (i in 1:length(nodes)){
+    suma_otu <- 0
     
-    while (df[1,1] == i ) {df = df[-1,]  
-    }}
+    while (x_1 <= dim(df)[1] && df[x_1 , "taxon1"] == nodes[i] ){ suma_otu = suma_otu + df[x_1 ,"weight"]
+  
+  x_1 = x_1 + 1}
     
-    if (df_2[1,1] != i){
-      deg_i = deg_i} else {
-    deg_i <- deg_i + deg_otu(df_2 ,i)
+    while (x_2 <= dim(df)[1] && df_2[x_2 ,"taxon2"] == nodes[i] ){ suma_otu = suma_otu + df_2[x_2 ,"weight"]
+  
+  x_2 = x_2 + 1}
     
-    while (df_2[1,1] == i ) {df_2 = df_2[-1,]
-    }}
+    vec_deg = c(vec_deg , suma_otu)
+    }
     
-    vec_deg = c(vec_deg ,deg_i)
     
-  }
+  
   return(cbind.data.frame(as.data.frame(otus),as.data.frame(vec_deg)) )
 }
 
@@ -124,7 +113,7 @@ deg <- function(df){
 
 
 
-deg(red)
+grados <- deg(red, otus)
 
 ```
 
@@ -134,19 +123,19 @@ deg(red)
 
 
 ```{r}
-length(deg)
+head(grados)
+dim(grados)
 dim(data)
 ```
 ```{r}
-head(deg)
-head(data)
-data_deg <- cbind(data,as.data.frame(deg))
-data_1_deg <- cbind(data_1 ,as.data.frame(deg))
-data_2_deg <- cbind(data_2 ,as.data.frame(deg))
+
+data_deg <- cbind(data, grados$vec_deg)
+data_1_deg <- cbind(data_1 ,grados$vec_deg)
+data_2_deg <- cbind(data_2 ,grados$vec_deg)
 head(data_deg)
 ```
 ```{r}
-data_by_deg <- data_deg[order(data_deg[,9], decreasing = TRUE),]
+data_by_deg <- data_deg[order(data_deg[,10], decreasing = TRUE),]
 head(data_by_deg)
 data_1_by_deg <- data_1_deg[order(data_1_deg[,5], decreasing = TRUE),]
 head(data_1_by_deg)
@@ -157,7 +146,7 @@ head(data_2_by_deg)
 auc <- function(df_deg){
   sm_p <- 0
   for (i in 1:dim(df_deg)[1]) {
-  f_i = df_deg[i,"deg"]
+  f_i = df_deg[i,dim(df_deg)[2]]
   if (f_i >= 0){sm_p = sm_p + f_i}
   else{sm_p = sm_p - f_i}
 }
@@ -170,9 +159,9 @@ auc_percent <- function(df_deg, propo){
   i <- 1
   sum_par <- 0
   #c <- c() 
-  while(i < dim(df_deg)[1] && sum_par < propo) {
+  while(i <= dim(df_deg)[1] && sum_par < propo) {
     #c <- c(c,i)
-    g_i = df_deg[i,"deg"]
+    g_i = df_deg[i,dim(df_deg)[2]]
     sum_par = sum_par + g_i
     i = i+1
   }
@@ -194,5 +183,15 @@ for (x in 1:20){
 ```{r}
 library(vegan
         )
+
+data_by_deg_5per <- data_by_deg[1:133,1:7]
+bc_dist <- vegdist(t(data_by_deg_5per), method = "bray")
+
 ```
+
+
+```{r}
+
+```
+
 
