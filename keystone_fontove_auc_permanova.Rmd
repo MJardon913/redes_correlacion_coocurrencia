@@ -257,12 +257,40 @@ bc_dist <- vegdist(t(data_by_deg_5per), method = "bray")
 ##Funcion pseduo F-stat
 
 ```{r}
-pseudo_F <- function(dist , dists){
-  s_t <- dist^2
+pseudo_F <- function(df , groups){
+  #df es dataframe de muestras, groups, un vector de subdataframes de df, por grupos
+  N <- dim(df)[2] #número de muestras
+  a <- length(groups) #número de grupos
+  groups <- list(groups)
+  n_s <- llply( .data = groups , .fun = ncol )
+  n_s <- unlist(n_s)
+  n <- mean(n_s) #número promedio de muestras por grupo
   
-}
+  dist <- vegdist(t(df))
+  dist <- as.vector(dist) #distancias bray_curtis entre todo par de muestras
+  
+  groups <- list(groups)
+  groups <- llply(.data = groups , .fun = t)
+  in_dist <- llply(.data = groups , .fun = vegdist )
+  in_dist <- llply(.data = groups, .fun = as.vector )
+  in_dist <- unlist(in_dist) #distancias bray-curtis intra-grupo
+  
+  #calculo del estadistico pseudo-f
+  
+  ss_t <- sum(dist^2)/N 
+  
+  ss_w <- sum(in_dist^2)/n
+  
+  ss_a <- ss_t - ss_w
 
+  f_stat <- (ss_a/(a-1))/(ss_w/(N-a))
+  
+  return(f_stat)
+}
 
 ```
 
+```{r}
+pseudo_F(data[,2:8], c(data_des ,data[,c("V2","V7","V8")]))
+```
 
