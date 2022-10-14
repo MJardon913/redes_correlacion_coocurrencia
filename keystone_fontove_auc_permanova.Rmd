@@ -26,6 +26,9 @@ produccion <- c("V2")
 plantacion <- c("V8")
 desarrollo <- c("V3", "V4", "V5" ,"V6")
 
+no_des <- c("V2", "V7", "V8")
+
+
 data_prod <- data[,produccion]
 data_plan <- data[,plantacion]
 data_des <- data[,desarrollo]
@@ -201,6 +204,10 @@ data_prod_deg <- cbind(data_prod ,grados$vec_deg)
 data_plan_deg <- cbind(data_plan ,grados$vec_deg)
 data_des_deg <- cbind(data_des ,grados$vec_deg)
 ```
+
+
+
+
 ```{r}
 #
 data_deg <- data_deg[order(data_deg[,dim(data_deg)[2]], decreasing = TRUE),]
@@ -208,13 +215,16 @@ data_prod_deg <- data_prod_deg[order(data_prod_deg[,dim(data_prod_deg)[2]], decr
 data_plan_deg <- data_plan_deg[order(data_plan_deg[,dim(data_plan_deg)[2]], decreasing = TRUE),]
 data_des_deg <- data_des_deg[order(data_des_deg[,dim(data_des_deg)[2]], decreasing = TRUE),]
 ```
+
+
+
 ```{r}
 auc <- function(df_deg){
   sm_p <- 0
   for (i in 1:dim(df_deg)[1]) {
   f_i = df_deg[i,dim(df_deg)[2]]
   if (f_i >= 0){sm_p = sm_p + f_i}
-  else{sm_p = sm_p - f_i}
+  #else{sm_p = sm_p - f_i}
 }
 
 return(sm_p)}
@@ -231,7 +241,7 @@ auc_percent <- function(df_deg, propo){
     sum_par = sum_par + g_i
     i = i+1
   }
-  return(i)
+  return(i-1)
 }
 ```
 
@@ -247,32 +257,39 @@ for (x in 1:20){
 
 
 ```{r}
-library(vegan
-        )
-
-data_by_deg_5per <- data_by_deg[1:133,1:7]
-bc_dist <- vegdist(t(data_by_deg_5per), method = "bray")
 
 ```
 ##Funcion pseduo F-stat
 
 ```{r}
+library(plyr)
+
 pseudo_F <- function(df , groups){
-  #df es dataframe de muestras, groups, un vector de subdataframes de df, por grupos
+  #df es dataframe de muestras, groups, una lista de vectores de etiquetas por grupo , por grupos
   N <- dim(df)[2] #número de muestras
   a <- length(groups) #número de grupos
-  groups <- list(groups)
-  n_s <- llply( .data = groups , .fun = ncol )
+  
+  df_groups <- list()
+  
+  for (i in 1:length(groups)){
+    df_i <- df[,groups[[i]]]
+    df_groups[[i]] <- df_i
+  } 
+  
+  
+  
+  
+  n_s <- llply( .data = df_groups , .fun = ncol )
   n_s <- unlist(n_s)
   n <- mean(n_s) #número promedio de muestras por grupo
   
   dist <- vegdist(t(df))
   dist <- as.vector(dist) #distancias bray_curtis entre todo par de muestras
   
-  groups <- list(groups)
-  groups <- llply(.data = groups , .fun = t)
-  in_dist <- llply(.data = groups , .fun = vegdist )
-  in_dist <- llply(.data = groups, .fun = as.vector )
+ 
+  df_groups <- llply(.data = df_groups , .fun = t)
+  in_dist <- llply(.data = df_groups , .fun = vegdist )
+  in_dist <- llply(.data = in_dist , .fun = as.vector )
   in_dist <- unlist(in_dist) #distancias bray-curtis intra-grupo
   
   #calculo del estadistico pseudo-f
@@ -291,6 +308,7 @@ pseudo_F <- function(df , groups){
 ```
 
 ```{r}
-pseudo_F(data[,2:8], c(data_des ,data[,c("V2","V7","V8")]))
+pseudo_F(data[,2:8], grupos)
+
 ```
 
