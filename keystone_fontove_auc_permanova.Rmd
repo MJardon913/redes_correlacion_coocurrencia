@@ -13,6 +13,16 @@ setwd("~/proyecto/redes_correlacion_coocurrencia")
 
 data <- read.table("table.from_chile.txt", row.names = 1, header = FALSE , sep= "" )
 
+filt <- c()
+for (i in 1:dim(data)[1]) {
+  v_i <- as.vector(data[i,])
+  #el siguiente 1 es filtro
+  if (length(v_i [ v_i > 0 ]) > 1 ) {
+    filt <- c(filt, i)
+  }
+}
+
+data <- data[filt,]
 #Asumiendo que los otus pueden etiquetarse con números de 0 en adelante, y que la red puede describirse con estas etiquetas, se fijan
 data$enum <- 0:(dim(data)[1]-1)
 head(data)
@@ -40,7 +50,7 @@ grupos[[2]] <- no_des
 
 ```{r}
 library(vegan)
-bc_dist <- vegdist(t(data[,2:8]), method = "bray")
+bc_dist <- vegdist(t(data[,1:7]), method = "bray")
 bc_dist
 PCoA <- cmdscale(bc_dist, eig = TRUE, k = 2)
 PCoA
@@ -384,11 +394,11 @@ nhood(red , c(1,9,300))
 
 ```{r}
 distan <- function(df , nodes , u , v){
-  u_0 <- min(c(u,v))
-  u_1 <- max(c(u,v))
+  #u_0 <- min(c(u,v))
+  #u_1 <- max(c(u,v))
   i <- 0
-  nd_0 <- c(u_0)
-  while( is.element(u_1 , nd_0) == FALSE && i <=  length(nodes) ){
+  nd_0 <- c(u)
+  while( is.element(v , nd_0) == FALSE && i <=  length(nodes) ){
     nd_0 <- nhood(df , nd_0)
     i <- i + 1  
     }
@@ -399,8 +409,42 @@ distan <- function(df , nodes , u , v){
 
 
 ```{r}
-distan(red, otus, 0,4000)
+distan(red, otus,4000 ,0)
 ```
+
+
+
+```{r}
+paths_min <- function(df, nodes, u , v) {
+  list_uv <- list(u)
+  list_vu <- list(v)
+  x_1 <- 1
+  x_2 <- 2
+  
+  while (is.element(v, list_uv[[x_1]]) == FALSE && x_1 <= length(nodes) ) {
+    
+    list_uv[[x_1 + 1]] <- nhood(df , list_uv[[x_1]] )
+    
+    x_1 = x_1 + 1
+  
+    }
+  
+  while (is.element(v, list_uv[[x_2]]) == FALSE && x_2 <= length(nodes) ) {
+    
+    list_uv[[x_2 + 1]] <- nhood(df , list_uv[[x_2]] )
+    
+    x_2 = x_2 + 1
+  
+    }
+  
+  
+  
+}
+
+
+
+```
+
 
 
 
