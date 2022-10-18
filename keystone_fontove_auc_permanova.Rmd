@@ -349,15 +349,15 @@ pseudo_F(data[,1:7], grupos)
 ```{r}
 nhood <- function(df, vec){
   v <- max(vec)
-  nd <- c()
+  nd <- vec
   i <- 1
   while (i <= dim(df)[1] && df[i,1] != v){
     if (is.element(df[i,1] , vec) == TRUE && is.element(df[i,2] , vec) == TRUE  ){
       i <- i + 1
-    } else { if (is.element(df[i,1] , vec) == TRUE) {
+    } else { if (is.element(df[i,1] , vec) == TRUE && is.element(df[i,2] , nd) == FALSE  ) {
       nd <- c(nd, df[i,2])
     }
-      if (is.element(df[i,2] , vec) == TRUE) {
+      if (is.element(df[i,2] , vec) == TRUE && is.element(df[i,1] , nd) == FALSE) {
       nd <- c(nd, df[i,1])
     }
       i <- i + 1  }
@@ -367,6 +367,9 @@ nhood <- function(df, vec){
     nd <- c(nd , df[i,2])
     i <- i + 1
   }
+  
+  
+  
   return(nd)
 }
 ```
@@ -374,7 +377,7 @@ nhood <- function(df, vec){
 
 
 ```{r}
-nhood(red , c(1,9))
+nhood(red , c(1,9,300))
 
 ```
 
